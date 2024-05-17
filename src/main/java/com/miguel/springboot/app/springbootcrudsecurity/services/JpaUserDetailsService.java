@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,18 +16,20 @@ import org.springframework.transaction.annotation.Transactional;
 import com.miguel.springboot.app.springbootcrudsecurity.entities.User;
 import com.miguel.springboot.app.springbootcrudsecurity.repositories.UserRepository;
 
+
 @Service
-public class JpaUserDetailsService implements UserDetailsService{
+public class JpaUserDetailsService implements UserDetailsService {
 
-
+    @Autowired
     private UserRepository repository;
 
+    @Transactional(readOnly = true)
     @Override
-    @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
         Optional<User> userOptional = repository.findByUsername(username);
-        if(userOptional.isEmpty()){
+
+        if (userOptional.isEmpty()) {
             throw new UsernameNotFoundException(String.format("Username %s no existe en el sistema!", username));
         }
 
@@ -34,16 +37,15 @@ public class JpaUserDetailsService implements UserDetailsService{
 
         List<GrantedAuthority> authorities = user.getRoles().stream()
         .map(role -> new SimpleGrantedAuthority(role.getName()))
-        .collect(Collectors.toList());
+                .collect(Collectors.toList());
 
-        return new org.springframework.security.core.userdetails.User(
-            user.getUsername(),
-            user.getPassword(),
-            user.isEnabled(),
-            true,
-            true,
-            true,
-            authorities);
+        return new org.springframework.security.core.userdetails.User(user.getUsername(), 
+        user.getPassword(), 
+        user.isEnabled(),
+        true,
+        true,
+        true,
+                authorities);
     }
     
 }
